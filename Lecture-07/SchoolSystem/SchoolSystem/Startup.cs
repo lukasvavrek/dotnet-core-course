@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using SchoolSystem.Models;
 
 namespace SchoolSystem
@@ -20,7 +21,12 @@ namespace SchoolSystem
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            // Setting ReferenceLoopHandling inside the AddJsonOptions fixes crash
+            // with loop referencing when using .Include when fetching DB data.
+            services
+                .AddMvc()
+                .AddJsonOptions(o => o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             var connectionString = "Data Source=university.db";
             services.AddDbContext<UniversityContext>(options => options.UseSqlite(connectionString));
